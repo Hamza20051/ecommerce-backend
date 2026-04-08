@@ -19,6 +19,7 @@
     "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
+    "mongoose": "^7.3.1",
     "openai": "^6.15.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.0",
