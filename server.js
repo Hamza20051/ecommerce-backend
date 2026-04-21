@@ -20,10 +20,14 @@ const startServer = async () => {
     const app = express();
     const PORT = process.env.PORT || 5000;
 
-    // ✅ Middleware
+    // =========================
+    // Middleware
+    // =========================
     app.use(express.json());
 
-    // ✅ FIXED CORS CONFIGURATION
+    // =========================
+    // CORS CONFIG (PRODUCTION SAFE)
+    // =========================
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
@@ -34,25 +38,64 @@ const startServer = async () => {
 
     app.use(cors({
       origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps / postman)
+        // Allow tools like Postman or mobile apps
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        // Allow main domains + all Vercel previews
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app')
+        ) {
           return callback(null, true);
-        } else {
-          return callback(new Error('CORS not allowed for this origin: ' + origin));
         }
+
+        console.log('❌ Blocked CORS:', origin);
+        return callback(null, false);
       },
       credentials: true
     }));
 
-    // ✅ Logger
+    // =========================
+    // REQUEST LOGGER
+    // =========================
     app.use((req, res, next) => {
       console.log(`[${req.method}] ${req.url}`);
       next();
     });
 
-    // ✅ Routes
+    // =========================
+    // ROOT ROUTE (IMPORTANT)
+    // =========================
+    app.get('/', (req, res) => {
+      res.json({
+        status: 'OK',
+        message: '🚀 Wearity API is running successfully',
+        endpoints: {
+          auth: '/api/auth',
+          products: '/api/products',
+          cart: '/api/cart',
+          orders: '/api/orders',
+          wishlist: '/api/wishlist',
+          ai: '/api/ai',
+          admin: '/api/admin'
+        }
+      });
+    });
+
+    // =========================
+    // HEALTH CHECK ROUTE
+    // =========================
+    app.get('/health', (req, res) => {
+      res.json({
+        status: 'healthy',
+        uptime: process.uptime(),
+        timestamp: new Date()
+      });
+    });
+
+    // =========================
+    // API ROUTES
+    // =========================
     app.use('/api/auth', authRoutes);
     app.use('/api/cart', cartRoutes);
     app.use('/api/orders', orderRoutes);
@@ -64,18 +107,24 @@ const startServer = async () => {
 
     console.log("✅ Routes are set up");
 
-    // ✅ Error handling
+    // =========================
+    // ERROR HANDLER
+    // =========================
     app.use((err, req, res, next) => {
-      console.error(err.stack);
+      console.error('❌ Server Error:', err.message);
       res.status(500).json({ message: 'Internal Server Error' });
     });
 
-    // ✅ 404 handler
+    // =========================
+    // 404 HANDLER
+    // =========================
     app.use((req, res) => {
       res.status(404).json({ message: 'Route Not Found' });
     });
 
-    // ✅ Start server
+    // =========================
+    // START SERVER
+    // =========================
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
