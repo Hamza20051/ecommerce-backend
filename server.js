@@ -1,36 +1,58 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 
 const connectDB = require('./config/db.js');
+
 const authRoutes = require('./routers/auth');
 const cartRoutes = require('./routers/cart');
 const orderRoutes = require('./routers/order');
 const productRoutes = require('./routers/product');
 const wishlistRoutes = require('./routers/wishlist');
-const cors = require('cors');
 const aiRoutes = require('./routers/ai');
 const adminRoutes = require('./routers/admin');
 const subscribeRoutes = require('./routers/subscribe');
- // Load environment variables
 
-// Connect to MongoDB
 const startServer = async () => {
   try {
-    await connectDB();  // Make sure MongoDB connection is established
+    await connectDB();
 
     const app = express();
     const PORT = process.env.PORT || 5000;
 
-    // Middleware
+    // ✅ Middleware
     app.use(express.json());
+
+    // ✅ FIXED CORS CONFIGURATION
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://wearityy-frontend.vercel.app',
+      'https://wearityy.com',
+      'https://www.wearityy.com'
+    ];
+
     app.use(cors({
-      origin: ['http://localhost:3000','http://localhost:5173'], // Allow requests from frontend
-    })); // Enable CORS for all routes
+      origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps / postman)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        } else {
+          return callback(new Error('CORS not allowed for this origin: ' + origin));
+        }
+      },
+      credentials: true
+    }));
+
+    // ✅ Logger
     app.use((req, res, next) => {
       console.log(`[${req.method}] ${req.url}`);
       next();
     });
-    // Routes
+
+    // ✅ Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/cart', cartRoutes);
     app.use('/api/orders', orderRoutes);
@@ -39,29 +61,27 @@ const startServer = async () => {
     app.use('/api/ai', aiRoutes);
     app.use('/api/admin', adminRoutes);
     app.use('/api/subscribe', subscribeRoutes);
-    console.log("Routes are set up and the server is running on port 5000.");
 
+    console.log("✅ Routes are set up");
 
-    // Error handling middleware
+    // ✅ Error handling
     app.use((err, req, res, next) => {
       console.error(err.stack);
-      res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).json({ message: 'Internal Server Error' });
     });
 
-    // 404 error handling for undefined routes
-    app.use((req, res, next) => {
-      res.status(404).send({ message: 'Route Not Found' });
-    });
+    // ✅ 404 handler
     app.use((req, res) => {
       res.status(404).json({ message: 'Route Not Found' });
     });
-    
-    // Start server
+
+    // ✅ Start server
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
+
   } catch (err) {
-    console.error('Failed to connect to MongoDB:', err);
+    console.error('❌ Failed to connect to MongoDB:', err);
   }
 };
 
