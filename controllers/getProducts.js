@@ -2,22 +2,60 @@ const Product = require('../models/Product');
 
 const getProducts = async (req, res) => {
   try {
-    const { search, category, sort } = req.query;
+    const {
+      search,
+      category,
+      sort,
+      priceMin,
+      priceMax,
+      rating,
+    } = req.query;
 
     let filter = {};
 
-    if (category) filter.category = category;
-    if (search) filter.name = { $regex: search, $options: 'i' }; // case-insensitive
+    // 🔍 SEARCH
+    if (search) {
+      filter.name = { $regex: search, $options: 'i' };
+    }
 
-    let products = await Product.find(filter);
+    // 📦 CATEGORY
+    if (category) {
+      filter.category = category;
+    }
 
-    // Apply sorting
-    if (sort === 'price-asc') products = products.sort((a, b) => a.price - b.price);
-    if (sort === 'price-desc') products = products.sort((a, b) => b.price - a.price);
+    // 💰 PRICE FILTER
+    if (priceMin || priceMax) {
+      filter.price = {};
+      if (priceMin) filter.price.$gte = Number(priceMin);
+      if (priceMax) filter.price.$lte = Number(priceMax);
+    }
+
+    // ⭐ RATING FILTER
+    if (rating) {
+      filter.ratings = { $gte: Number(rating) };
+    }
+
+    // 🔥 BUILD QUERY
+    let query = Product.find(filter);
+
+    // 📊 SORTING (FIXED: done in MongoDB)
+    if (sort === 'price-asc') {
+      query = query.sort({ price: 1 });
+    } else if (sort === 'price-desc') {
+      query = query.sort({ price: -1 });
+    } else if (sort === 'newest') {
+      query = query.sort({ createdAt: -1 });
+    }
+
+    const products = await query;
 
     res.json(products);
+
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching products', error });
+    console.error('Get Products Error:', error);
+    res.status(500).json({
+      message: 'Error fetching products',
+    });
   }
 };
 
