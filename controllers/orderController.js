@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 
 /* =========================
-   🛒 CREATE ORDER (FIXED)
+   🛒 CREATE ORDER (IMPROVED)
 ========================= */
 const createOrder = async (req, res) => {
   try {
@@ -14,13 +14,13 @@ const createOrder = async (req, res) => {
       discountCode,
     } = req.body;
 
-    const userId = req.user.id; // ✅ FIX: secure user
+    const userId = req.user.id;
 
     if (!products || products.length === 0) {
       return res.status(400).json({ message: 'No products in order' });
     }
 
-    // 🔥 Check stock first (NO DB CHANGES YET)
+    // 🔥 CHECK STOCK FIRST
     for (const item of products) {
       const product = await Product.findById(item.product);
 
@@ -35,7 +35,7 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // 🧾 CREATE ORDER FIRST
+    // 🧾 CREATE ORDER (DEFAULT STATUS = Pending)
     const newOrder = new Order({
       user: userId,
       products,
@@ -43,11 +43,15 @@ const createOrder = async (req, res) => {
       paymentMethod,
       discountCode,
       totalPrice,
+
+      // ⭐ IMPORTANT
+      status: 'Pending',
+      isPaid: paymentMethod === 'COD' ? false : false
     });
 
     const savedOrder = await newOrder.save();
 
-    // 🔻 THEN DECREASE STOCK SAFELY
+    // 🔻 REDUCE STOCK
     for (const item of products) {
       const product = await Product.findById(item.product);
 
@@ -94,7 +98,7 @@ const getOrderById = async (req, res) => {
 ========================= */
 const getOrdersByUser = async (req, res) => {
   try {
-    const userId = req.user.id; // ✅ FIXED
+    const userId = req.user.id;
 
     const orders = await Order.find({ user: userId })
       .populate('products.product')
