@@ -16,14 +16,14 @@ const router = express.Router();
 router.post('/', protect, createOrder);
 
 /* ==============================
+   👤 GET USER ORDERS (LOGGED-IN USER)
+================================ */
+router.get('/my', protect, getOrdersByUser);
+
+/* ==============================
    📦 GET SINGLE ORDER
 ================================ */
 router.get('/:id', protect, getOrderById);
-
-/* ==============================
-   👤 GET USER ORDERS (SECURE)
-================================ */
-router.get('/user/:userId', protect, getOrdersByUser);
 
 /* ==============================
    🔐 ADMIN: ALL ORDERS
