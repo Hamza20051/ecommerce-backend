@@ -3,31 +3,27 @@ const {
   createOrder,
   getOrderById,
   getOrdersByUser,
-  getAllOrders
+  getAllOrders,
+  updateOrderStatus
 } = require('../controllers/orderController');
 
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-/* ==============================
-   🛒 CREATE ORDER (USER ONLY)
-================================ */
+/* CREATE ORDER */
 router.post('/', protect, createOrder);
 
-/* ==============================
-   👤 GET USER ORDERS (LOGGED-IN USER)
-================================ */
-router.get('/my', protect, getOrdersByUser);
-
-/* ==============================
-   📦 GET SINGLE ORDER
-================================ */
+/* SINGLE ORDER */
 router.get('/:id', protect, getOrderById);
 
-/* ==============================
-   🔐 ADMIN: ALL ORDERS
-================================ */
+/* USER ORDERS */
+router.get('/user/:userId', protect, getOrdersByUser);
+
+/* ADMIN ALL ORDERS */
 router.get('/', protect, adminOnly, getAllOrders);
+
+/* ⭐ NEW: UPDATE STATUS */
+router.put('/status/:id', updateOrderStatus);
 
 module.exports = router;
