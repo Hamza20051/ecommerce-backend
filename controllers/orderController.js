@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 
 /* =========================
-   🛒 CREATE ORDER (IMPROVED)
+   🛒 CREATE ORDER
 ========================= */
 const createOrder = async (req, res) => {
   try {
@@ -35,7 +35,7 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // 🧾 CREATE ORDER (DEFAULT STATUS = Pending)
+    // 🧾 CREATE ORDER
     const newOrder = new Order({
       user: userId,
       products,
@@ -43,8 +43,6 @@ const createOrder = async (req, res) => {
       paymentMethod,
       discountCode,
       totalPrice,
-
-      // ⭐ IMPORTANT
       status: 'Pending',
       isPaid: paymentMethod === 'COD' ? false : false
     });
@@ -128,9 +126,36 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+/* =========================
+   🔄 UPDATE ORDER STATUS (FIXED)
+========================= */
+const updateOrderStatus = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = req.body.status || order.status;
+
+    const updatedOrder = await order.save();
+
+    res.json(updatedOrder);
+
+  } catch (error) {
+    console.error('Update Order Error:', error);
+    res.status(500).json({ message: 'Error updating order status' });
+  }
+};
+
+/* =========================
+   EXPORTS
+========================= */
 module.exports = {
   createOrder,
   getOrderById,
   getOrdersByUser,
   getAllOrders,
+  updateOrderStatus
 };
