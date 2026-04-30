@@ -5,25 +5,38 @@ const Product = require('../models/Product');
 ========================= */
 const getProducts = async (req, res) => {
   try {
-    const { search, sort, category } = req.query;
+    const { search, sort, category, page, limit } = req.query;
 
     let filter = {};
 
+    // 📦 CATEGORY FILTER
     if (category) filter.category = category;
 
+    // 🔍 SEARCH (enhanced)
     if (search) {
-      filter.name = { $regex: search, $options: "i" };
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
     }
 
     let query = Product.find(filter);
 
-    // 🔥 SORTING (safe + default)
+    // 📊 SORTING
     if (sort === 'price-asc') {
       query = query.sort({ price: 1 });
     } else if (sort === 'price-desc') {
       query = query.sort({ price: -1 });
     } else {
-      query = query.sort({ createdAt: -1 }); // ✅ default newest
+      query = query.sort({ createdAt: -1 }); // default newest
+    }
+
+    // 📄 PAGINATION (optional but recommended)
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 0;
+
+    if (limitNum > 0) {
+      query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
     }
 
     const products = await query;
@@ -35,6 +48,7 @@ const getProducts = async (req, res) => {
     res.status(500).json({ message: 'Error fetching products' });
   }
 };
+
 
 /* =========================
    🔍 GET PRODUCT BY ID
@@ -54,6 +68,7 @@ const getProductById = async (req, res) => {
     res.status(500).json({ message: 'Error fetching product' });
   }
 };
+
 
 /* =========================
    ➕ CREATE PRODUCT
@@ -84,10 +99,10 @@ const createProduct = async (req, res) => {
     const oldPriceNum = oldPrice ? Number(oldPrice) : 0;
     const stockNum = stock ? Number(stock) : 0;
 
-    const finalOnSale =
-      onSale && oldPriceNum > priceNum;
+    // 🔥 FIXED SALE LOGIC
+    const finalOnSale = Boolean(onSale) && oldPriceNum > priceNum;
 
-    // ✅ SAFE IMAGE HANDLING (array OR string)
+    // 🖼 IMAGE HANDLING
     const imagesArray = Array.isArray(image)
       ? image
       : typeof image === "string"
@@ -108,7 +123,7 @@ const createProduct = async (req, res) => {
       deliveryInfo: deliveryInfo || {},
       stock: stockNum,
       category,
-      ratings: ratings || 0,
+      ratings: Number(ratings) || 0,
       isOutOfStock: stockNum === 0,
     });
 
@@ -121,6 +136,7 @@ const createProduct = async (req, res) => {
     res.status(500).json({ message: 'Error creating product' });
   }
 };
+
 
 /* =========================
    ✏️ UPDATE PRODUCT
@@ -154,7 +170,10 @@ const updateProduct = async (req, res) => {
     product.description = description ?? product.description;
     product.price = priceNum;
     product.oldPrice = oldPriceNum;
-    product.onSale = onSale && oldPriceNum > priceNum;
+
+    // 🔥 FIXED SALE LOGIC
+    product.onSale = Boolean(onSale) && oldPriceNum > priceNum;
+
     product.stock = stockNum;
     product.isOutOfStock = stockNum <= 0;
 
@@ -182,6 +201,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
+
 /* =========================
    ❌ DELETE PRODUCT
 ========================= */
@@ -203,6 +223,10 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+
+/* =========================
+   EXPORTS
+========================= */
 module.exports = {
   getProducts,
   getProductById,
