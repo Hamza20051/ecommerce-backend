@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 /* =========================
-   🔐 GENERATE TOKEN
+   TOKEN
 ========================= */
 const generateToken = (id) => {
   return jwt.sign(
@@ -13,11 +13,11 @@ const generateToken = (id) => {
 };
 
 /* =========================
-   🧾 REGISTER USER
+   REGISTER (ADMIN ONLY USE)
 ========================= */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, isAdmin = false } = req.body;
+    const { name, email, password } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
-      isAdmin,
+      isAdmin: false, // 🔒 FORCE FALSE
     });
 
     res.status(201).json({
@@ -47,7 +47,7 @@ const registerUser = async (req, res) => {
 };
 
 /* =========================
-   🔑 LOGIN USER
+   LOGIN (ADMIN ONLY)
 ========================= */
 const loginUser = async (req, res) => {
   try {
@@ -76,11 +76,10 @@ const loginUser = async (req, res) => {
 };
 
 /* =========================
-   👤 GET PROFILE
+   PROFILE
 ========================= */
 const getUserProfile = async (req, res) => {
   try {
-    // ✅ FIXED: use req.user.id (from protect middleware)
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -103,5 +102,5 @@ const getUserProfile = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-  getUserProfile
+  getUserProfile,
 };
