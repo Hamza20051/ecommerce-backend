@@ -26,32 +26,16 @@ const startServer = async () => {
     app.use(express.json());
 
     // =========================
-    // CORS CONFIG (PRODUCTION SAFE)
+    // ✅ FIXED CORS (ONLY CHANGE)
     // =========================
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://wearityy-frontend.vercel.app',
-      'https://wearityy.com',
-      'https://www.wearityy.com'
-    ];
-
     app.use(cors({
-      origin: function (origin, callback) {
-        // Allow tools like Postman or mobile apps
-        if (!origin) return callback(null, true);
-
-        // Allow main domains + all Vercel previews
-        if (
-          allowedOrigins.includes(origin) ||
-          origin.endsWith('.vercel.app')
-        ) {
-          return callback(null, true);
-        }
-
-        console.log('❌ Blocked CORS:', origin);
-        return callback(null, false);
-      },
+      origin: [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://wearityy-frontend.vercel.app',
+        'https://wearityy.com',
+        'https://www.wearityy.com'
+      ],
       credentials: true
     }));
 
@@ -64,32 +48,12 @@ const startServer = async () => {
     });
 
     // =========================
-    // ROOT ROUTE (IMPORTANT)
+    // ROOT ROUTE
     // =========================
     app.get('/', (req, res) => {
       res.json({
         status: 'OK',
         message: '🚀 Wearity API is running successfully',
-        endpoints: {
-          auth: '/api/auth',
-          products: '/api/products',
-          cart: '/api/cart',
-          orders: '/api/orders',
-          wishlist: '/api/wishlist',
-          ai: '/api/ai',
-          admin: '/api/admin'
-        }
-      });
-    });
-
-    // =========================
-    // HEALTH CHECK ROUTE
-    // =========================
-    app.get('/health', (req, res) => {
-      res.json({
-        status: 'healthy',
-        uptime: process.uptime(),
-        timestamp: new Date()
       });
     });
 
@@ -104,8 +68,6 @@ const startServer = async () => {
     app.use('/api/ai', aiRoutes);
     app.use('/api/admin', adminRoutes);
     app.use('/api/subscribe', subscribeRoutes);
-
-    console.log("✅ Routes are set up");
 
     // =========================
     // ERROR HANDLER
