@@ -36,7 +36,7 @@ const startServer = async () => {
         'https://wearityy.com',
         'https://www.wearityy.com'
       ],
-      credentials: true
+      credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     }));
   app.options('*', cors());
