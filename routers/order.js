@@ -11,19 +11,29 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-/* CREATE ORDER */
+/* =========================
+   CREATE ORDER
+========================= */
 router.post('/', protect, createOrder);
 
-/* SINGLE ORDER */
+/* =========================
+   SINGLE ORDER
+========================= */
 router.get('/:id', protect, getOrderById);
 
-/* USER ORDERS */
+/* =========================
+   USER ORDERS
+========================= */
 router.get('/user/:userId', protect, getOrdersByUser);
 
-/* ADMIN ALL ORDERS */
+/* =========================
+   ADMIN - ALL ORDERS
+========================= */
 router.get('/', protect, adminOnly, getAllOrders);
 
-/* ⭐ NEW: UPDATE STATUS */
-router.put('/status/:id', updateOrderStatus);
+/* =========================
+   UPDATE ORDER STATUS
+========================= */
+router.put('/status/:id', protect, adminOnly, updateOrderStatus);
 
 module.exports = router;
