@@ -6,28 +6,26 @@ const {
   clearCart
 } = require('../controllers/cartController');
 
-const { protect } = require('../middleware/authMiddleware');
-
 const router = express.Router();
 
 /* ==============================
-   🛒 GET CART (secure)
+   🛒 GET CART (guest safe)
 ================================ */
-router.get('/:userId', protect, getCart);
+router.get('/', getCart);
 
 /* ==============================
    ➕ ADD TO CART
 ================================ */
-router.post('/:userId', protect, addToCart);
+router.post('/', addToCart);
 
 /* ==============================
-   ❌ REMOVE ITEM FROM CART
+   ❌ REMOVE ITEM
 ================================ */
-router.delete('/:userId/:productId', protect, removeFromCart);
+router.delete('/:productId', removeFromCart);
 
 /* ==============================
    🧹 CLEAR CART
 ================================ */
-router.delete('/:userId', protect, clearCart);
+router.delete('/', clearCart);
 
 module.exports = router;
