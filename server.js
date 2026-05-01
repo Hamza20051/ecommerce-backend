@@ -8,7 +8,7 @@ const authRoutes = require('./routers/auth');
 const cartRoutes = require('./routers/cart');
 const orderRoutes = require('./routers/order');
 const productRoutes = require('./routers/product');
-const wishlistRoutes = require('./routers/wishlist');
+
 const aiRoutes = require('./routers/ai');
 const adminRoutes = require('./routers/admin');
 const subscribeRoutes = require('./routers/subscribe');
@@ -66,7 +66,7 @@ const startServer = async () => {
     app.use('/api/cart', cartRoutes);
     app.use('/api/orders', orderRoutes);
     app.use('/api/products', productRoutes);
-    app.use('/api/wishlist', wishlistRoutes);
+    
     app.use('/api/ai', aiRoutes);
     app.use('/api/admin', adminRoutes);
     app.use('/api/subscribe', subscribeRoutes);
