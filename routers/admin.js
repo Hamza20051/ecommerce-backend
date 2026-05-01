@@ -16,3 +16,4 @@ router.get('/users', protect, adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Server error while fetching admins' });
   }
 });
+module.exports = router;
