@@ -13,13 +13,13 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 /* ==========================
-   🌐 PUBLIC ROUTES
+   🌐 PUBLIC ROUTES (GUEST ACCESS)
 ========================== */
 router.get('/', getProducts);
 router.get('/:id', getProductById);
 
 /* ==========================
-   🔐 ADMIN ROUTES
+   🔐 ADMIN ONLY ROUTES
 ========================== */
 router.post('/', protect, adminOnly, createProduct);
 router.put('/:id', protect, adminOnly, updateProduct);
