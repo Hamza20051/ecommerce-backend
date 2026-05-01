@@ -1,5 +1,5 @@
 const express = require("express");
-const Wishlist = require("../models/Wishlist");
+const User = require("../models/User");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -8,19 +8,20 @@ const router = express.Router();
    ADD TO WISHLIST
 ========================= */
 router.post("/add", protect, async (req, res) => {
-  const userId = req.user.id;
   const { productId } = req.body;
 
   try {
-    const exists = await Wishlist.findOne({ userId, productId });
-    if (exists) {
+    const user = await User.findById(req.user.id);
+
+    if (user.wishlist.includes(productId)) {
       return res.status(400).json({ message: "Already in wishlist" });
     }
 
-    const wishlistItem = new Wishlist({ userId, productId });
-    await wishlistItem.save();
+    user.wishlist.push(productId);
+    await user.save();
 
-    res.json(wishlistItem);
+    res.json({ message: "Added to wishlist", wishlist: user.wishlist });
+
   } catch (err) {
     res.status(500).json({ message: "Failed to add to wishlist" });
   }
@@ -30,12 +31,19 @@ router.post("/add", protect, async (req, res) => {
    REMOVE FROM WISHLIST
 ========================= */
 router.delete("/remove/:productId", protect, async (req, res) => {
-  const userId = req.user.id;
   const productId = req.params.productId;
 
   try {
-    await Wishlist.findOneAndDelete({ userId, productId });
-    res.json({ message: "Removed from wishlist" });
+    const user = await User.findById(req.user.id);
+
+    user.wishlist = user.wishlist.filter(
+      (id) => id.toString() !== productId
+    );
+
+    await user.save();
+
+    res.json({ message: "Removed from wishlist", wishlist: user.wishlist });
+
   } catch (err) {
     res.status(500).json({ message: "Failed to remove" });
   }
@@ -46,10 +54,11 @@ router.delete("/remove/:productId", protect, async (req, res) => {
 ========================= */
 router.get("/me", protect, async (req, res) => {
   try {
-    const items = await Wishlist.find({ userId: req.user.id })
-      .populate("productId");
+    const user = await User.findById(req.user.id)
+      .populate("wishlist");
 
-    res.json(items);
+    res.json(user.wishlist);
+
   } catch (err) {
     res.status(500).json({ message: "Failed to load wishlist" });
   }
