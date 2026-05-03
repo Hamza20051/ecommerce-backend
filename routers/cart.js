@@ -8,24 +8,24 @@ const {
 
 const router = express.Router();
 
-/* ==============================
-   🛒 GET CART (guest safe)
-================================ */
-router.get('/', getCart);
+/* =========================
+   🛒 GET CART
+========================= */
+router.get('/:userId', getCart);
 
-/* ==============================
+/* =========================
    ➕ ADD TO CART
-================================ */
-router.post('/', addToCart);
+========================= */
+router.post('/:userId', addToCart);
 
-/* ==============================
+/* =========================
    ❌ REMOVE ITEM
-================================ */
-router.delete('/:productId', removeFromCart);
+========================= */
+router.delete('/:userId/:productId', removeFromCart);
 
-/* ==============================
+/* =========================
    🧹 CLEAR CART
-================================ */
-router.delete('/', clearCart);
+========================= */
+router.delete('/:userId', clearCart);
 
 module.exports = router;
