@@ -2,11 +2,10 @@ const mongoose = require('mongoose');
 
 const CartSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    guestId: {
+      type: String,
       required: true,
-      unique: true, // one cart per user
+      index: true,
     },
 
     products: [
@@ -16,20 +15,15 @@ const CartSchema = new mongoose.Schema(
           ref: 'Product',
           required: true,
         },
-
         quantity: {
           type: Number,
-          required: true,
-          min: 1,
           default: 1,
+          min: 1,
         },
       },
     ],
   },
   { timestamps: true }
 );
-
-// Optional safety: prevent duplicate products in cart (recommended)
-CartSchema.index({ user: 1, 'products.product': 1 }, { unique: true });
 
 module.exports = mongoose.model('Cart', CartSchema);
