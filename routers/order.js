@@ -1,8 +1,6 @@
 const express = require('express');
 const {
   createOrder,
-  getOrderById,
-  getAllOrders,
   updateOrderStatus
 } = require('../controllers/orderController');
 
@@ -16,17 +14,7 @@ const router = express.Router();
 router.post('/', createOrder);
 
 /* =========================
-   📦 GET ORDER BY ID (PUBLIC / GUEST SAFE)
-========================= */
-router.get('/:id', getOrderById);
-
-/* =========================
-   👑 ADMIN - ALL ORDERS
-========================= */
-router.get('/', protect, adminOnly, getAllOrders);
-
-/* =========================
-   🔄 UPDATE ORDER STATUS (ADMIN ONLY)
+   👑 ADMIN - UPDATE STATUS
 ========================= */
 router.put('/status/:id', protect, adminOnly, updateOrderStatus);
 
