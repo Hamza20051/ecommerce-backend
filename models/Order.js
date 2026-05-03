@@ -2,9 +2,8 @@ const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    guestId: {
+      type: String,
       required: true,
     },
 
@@ -13,69 +12,38 @@ const OrderSchema = new mongoose.Schema(
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Product',
-          required: true,
         },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
+        quantity: Number,
       },
     ],
 
     shippingInfo: {
-      name: { type: String, required: true },
-      email: { type: String, required: true },
-      phone: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
+      name: String,
+      email: String,
+      phone: String,
+      address: String,
+      city: String,
+      postalCode: String,
     },
 
     paymentMethod: {
       type: String,
-      required: true,
-      enum: ['COD', 'SadaPay', 'NayaPay', 'BankTransfer'],
+      enum: ["COD", "SadaPay", "NayaPay"],
+      default: "COD",
     },
 
-    discountCode: {
-      type: String,
-      default: null,
-    },
+    totalPrice: Number,
 
-    totalPrice: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    // 💳 PAYMENT TRACKING
+    // 🔥 NEW
     isPaid: {
       type: Boolean,
       default: false,
     },
 
-    paidAt: {
-      type: Date,
-      default: null,
-    },
-
-    // 🚚 DELIVERY TRACKING
-    isDelivered: {
-      type: Boolean,
-      default: false,
-    },
-
-    deliveredAt: {
-      type: Date,
-      default: null,
-    },
-
-    // 📦 ORDER STATUS
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Pending',
+      enum: ["Pending", "Confirmed", "Rejected"],
+      default: "Pending",
     },
   },
   { timestamps: true }
