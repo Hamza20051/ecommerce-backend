@@ -1,31 +1,14 @@
-const express = require('express');
-const {
-  getCart,
-  addToCart,
-  removeFromCart,
-  clearCart
-} = require('../controllers/cartController');
-
+const express = require("express");
 const router = express.Router();
 
-/* =========================
-   🛒 GET CART
-========================= */
-router.get('/:userId', getCart);
+const {
+  addToCart,
+  getCart,
+  removeFromCart,
+} = require("../controllers/cartController");
 
-/* =========================
-   ➕ ADD TO CART
-========================= */
-router.post('/:userId', addToCart);
-
-/* =========================
-   ❌ REMOVE ITEM
-========================= */
-router.delete('/:userId/:productId', removeFromCart);
-
-/* =========================
-   🧹 CLEAR CART
-========================= */
-router.delete('/:userId', clearCart);
+router.post("/:guestId", addToCart);
+router.get("/:guestId", getCart);
+router.delete("/:guestId/:productId", removeFromCart);
 
 module.exports = router;
