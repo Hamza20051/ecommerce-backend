@@ -9,10 +9,8 @@ const getProducts = async (req, res) => {
 
     let filter = {};
 
-    // 📦 CATEGORY FILTER
     if (category) filter.category = category;
 
-    // 🔍 SEARCH (enhanced)
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -22,16 +20,14 @@ const getProducts = async (req, res) => {
 
     let query = Product.find(filter);
 
-    // 📊 SORTING
     if (sort === 'price-asc') {
       query = query.sort({ price: 1 });
     } else if (sort === 'price-desc') {
       query = query.sort({ price: -1 });
     } else {
-      query = query.sort({ createdAt: -1 }); // default newest
+      query = query.sort({ createdAt: -1 });
     }
 
-    // 📄 PAGINATION (optional but recommended)
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 0;
 
@@ -40,7 +36,6 @@ const getProducts = async (req, res) => {
     }
 
     const products = await query;
-
     res.json(products);
 
   } catch (error) {
@@ -82,6 +77,7 @@ const createProduct = async (req, res) => {
       oldPrice,
       onSale,
       image,
+      images, // ✅ FIXED: read images
       stock,
       category,
       ratings,
@@ -91,7 +87,7 @@ const createProduct = async (req, res) => {
       deliveryInfo,
     } = req.body;
 
-    if (!name || !description || !price || !image || !category) {
+    if (!name || !description || !price || !category) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -99,15 +95,13 @@ const createProduct = async (req, res) => {
     const oldPriceNum = oldPrice ? Number(oldPrice) : 0;
     const stockNum = stock ? Number(stock) : 0;
 
-    // 🔥 FIXED SALE LOGIC
     const finalOnSale = Boolean(onSale) && oldPriceNum > priceNum;
 
-    // 🖼 IMAGE HANDLING
-    const imagesArray = Array.isArray(image)
-      ? image
-      : typeof image === "string"
-        ? image.split(',').map(i => i.trim())
-        : [];
+    // ✅ FIXED IMAGE HANDLING
+    const imagesArray = Array.isArray(images) ? images : [];
+    const mainImage =
+      image ||
+      (imagesArray.length > 0 ? imagesArray[0] : '');
 
     const newProduct = new Product({
       name,
@@ -115,8 +109,10 @@ const createProduct = async (req, res) => {
       price: priceNum,
       oldPrice: oldPriceNum,
       onSale: finalOnSale,
-      image: imagesArray[0] || '',
-      images: imagesArray,
+
+      image: mainImage,   // ✅ FIXED
+      images: imagesArray, // ✅ FIXED
+
       materials: Array.isArray(materials) ? materials : [],
       colors: Array.isArray(colors) ? colors : [],
       carats: Array.isArray(carats) ? carats : [],
@@ -160,6 +156,7 @@ const updateProduct = async (req, res) => {
       colors,
       carats,
       deliveryInfo,
+      images // ✅ FIXED
     } = req.body;
 
     const priceNum = price ? Number(price) : product.price;
@@ -171,7 +168,6 @@ const updateProduct = async (req, res) => {
     product.price = priceNum;
     product.oldPrice = oldPriceNum;
 
-    // 🔥 FIXED SALE LOGIC
     product.onSale = Boolean(onSale) && oldPriceNum > priceNum;
 
     product.stock = stockNum;
@@ -190,6 +186,12 @@ const updateProduct = async (req, res) => {
       : product.carats;
 
     product.deliveryInfo = deliveryInfo ?? product.deliveryInfo;
+
+    // ✅ FIXED IMAGE UPDATE
+    if (Array.isArray(images)) {
+      product.images = images;
+      product.image = images[0] || product.image;
+    }
 
     await product.save();
 
