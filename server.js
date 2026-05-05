@@ -1,45 +1,103 @@
+require('dotenv').config();
 const express = require('express');
-const router = express.Router();
-const Subscriber = require('../models/Subscriber');
+const cors = require('cors');
 
-/* ==============================
-   📩 SUBSCRIBE ROUTE (PUBLIC)
-================================ */
-router.post('/', async (req, res) => {
+const connectDB = require('./config/db.js');
+
+const authRoutes = require('./routers/auth');
+const cartRoutes = require('./routers/cart');
+const orderRoutes = require('./routers/order');
+const productRoutes = require('./routers/product');
+
+const aiRoutes = require('./routers/ai');
+const adminRoutes = require('./routers/admin');
+const subscribeRoutes = require('./routers/subscribe');
+
+const startServer = async () => {
   try {
-    let { email } = req.body;
+    await connectDB();
 
-    // 🔹 Validate input
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ message: 'Email is required' });
-    }
+    const app = express();
+    const PORT = process.env.PORT || 5000;
 
-    // 🔹 Normalize
-    email = email.trim().toLowerCase();
+    // =========================
+    // Middleware
+    // =========================
+   // =========================
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-    // 🔹 Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
+    // =========================
+    // ✅ FIXED CORS (ONLY CHANGE)
+    // =========================
+    app.use(cors({
+      origin: [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://wearityy-frontend.vercel.app',
+        'https://wearityy.com',
+        'https://www.wearityy.com'
+      ],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    }));
+  app.options('*', cors());
 
-    // 🔹 Check duplicate
-    const existing = await Subscriber.findOne({ email });
-    if (existing) {
-      return res.status(409).json({ message: 'Already subscribed' });
-    }
+    // =========================
+    // REQUEST LOGGER
+    // =========================
+    app.use((req, res, next) => {
+      console.log(`[${req.method}] ${req.url}`);
+      next();
+    });
 
-    // 🔹 Save subscriber
-    await Subscriber.create({ email });
+    // =========================
+    // ROOT ROUTE
+    // =========================
+    app.get('/', (req, res) => {
+      res.json({
+        status: 'OK',
+        message: '🚀 Wearity API is running successfully',
+      });
+    });
 
-    res.status(201).json({
-      message: 'Successfully subscribed!'
+    // =========================
+    // API ROUTES
+    // =========================
+    app.use('/api/auth', authRoutes);
+    app.use('/api/cart', cartRoutes);
+    app.use('/api/orders', orderRoutes);
+    app.use('/api/products', productRoutes);
+    
+    app.use('/api/ai', aiRoutes);
+    app.use('/api/admin', adminRoutes);
+    app.use('/api/subscribe', subscribeRoutes);
+
+    // =========================
+    // ERROR HANDLER
+    // =========================
+    app.use((err, req, res, next) => {
+      console.error('❌ Server Error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
+
+    // =========================
+    // 404 HANDLER
+    // =========================
+    app.use((req, res) => {
+      res.status(404).json({ message: 'Route Not Found' });
+    });
+
+    // =========================
+    // START SERVER
+    // =========================
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
     });
 
   } catch (err) {
-    console.error('Subscribe Error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Failed to connect to MongoDB:', err);
   }
-});
+};
 
-module.exports = router;
+startServer();
