@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const sendEmail = require('../utils/sendEmail');
 
 /* =========================
    CREATE ORDER
@@ -29,6 +30,34 @@ const createOrder = async (req, res) => {
 
     const saved = await order.save();
 
+    /* =========================
+       📧 SEND EMAIL AFTER ORDER
+    ========================= */
+    await sendEmail(
+      shippingInfo.email,
+      paymentMethod === "COD"
+        ? "Order Confirmed - Wearity"
+        : "Order Pending Verification - Wearity",
+
+      paymentMethod === "COD"
+        ? `Hello ${shippingInfo.name},
+
+Your order (${saved._id}) has been confirmed 🎉
+
+Thank you for shopping with Wearity.
+`
+        : `Hello ${shippingInfo.name},
+
+Your order (${saved._id}) has been placed successfully.
+
+Please send your payment screenshot on WhatsApp for verification.
+
+After verification, your order will be confirmed.
+
+Thank you for shopping with Wearity.
+`
+    );
+
     res.status(201).json(saved);
 
   } catch (error) {
@@ -52,7 +81,23 @@ const updateOrderStatus = async (req, res) => {
 
     // 🔥 mark paid if confirmed
     if (req.body.status === "Confirmed") {
+
       order.isPaid = true;
+
+      /* =========================
+         📧 SEND CONFIRMATION EMAIL
+      ========================= */
+      await sendEmail(
+        order.shippingInfo.email,
+        "Order Confirmed - Wearity",
+
+        `Hello ${order.shippingInfo.name},
+
+Your order (${order._id}) has been confirmed 🎉
+
+Thank you for shopping with Wearity.
+`
+      );
     }
 
     const updated = await order.save();
@@ -60,6 +105,7 @@ const updateOrderStatus = async (req, res) => {
     res.json(updated);
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Update failed" });
   }
 };
