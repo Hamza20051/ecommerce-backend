@@ -82,3 +82,20 @@ exports.removeFromCart = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+/* =========================
+   CLEAR CART
+========================= */
+exports.clearCart = async (req, res) => {
+  try {
+
+    const { guestId } = req.params;
+
+    await Cart.findOneAndDelete({ guestId });
+
+    res.json({ message: "Cart cleared" });
+
+  } catch (err) {
+    console.error("ClearCart Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
