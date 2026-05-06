@@ -7,16 +7,27 @@ exports.addToCart = async (req, res) => {
     const { guestId } = req.params;
     const { productId, quantity } = req.body;
 
+    console.log("BODY:", req.body);
+    console.log("PRODUCT ID:", productId);
+
     let cart = await Cart.findOne({ guestId });
 
+    // ✅ CREATE CART IF NOT EXISTS
     if (!cart) {
-      cart = new Cart({ guestId, items: [] });
+      cart = new Cart({
+        guestId,
+        items: [],
+      });
     }
 
+    // ✅ SAFE CHECK
     const existingItem = cart.items.find(
-      item => item.product.toString() === productId
+      (item) =>
+        item.product &&
+        item.product.toString() === productId
     );
 
+    // ✅ UPDATE QUANTITY
     if (existingItem) {
 
       existingItem.quantity += quantity;
@@ -25,11 +36,12 @@ exports.addToCart = async (req, res) => {
 
       cart.items.push({
         product: productId,
-        quantity
+        quantity,
       });
 
     }
 
+    // ✅ SAVE
     await cart.save();
 
     // ✅ FAST RESPONSE
@@ -43,7 +55,7 @@ exports.addToCart = async (req, res) => {
     console.error("AddToCart Error:", err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
 
   }
@@ -69,7 +81,7 @@ exports.getCart = async (req, res) => {
     console.error("GetCart Error:", err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
 
   }
@@ -87,13 +99,16 @@ exports.removeFromCart = async (req, res) => {
       return res.json({ items: [] });
     }
 
+    // ✅ SAFE REMOVE
     cart.items = cart.items.filter(
-      item => item.product.toString() !== productId
+      (item) =>
+        item.product &&
+        item.product.toString() !== productId
     );
 
     await cart.save();
 
-    // ✅ populate before response
+    // ✅ UPDATED CART
     const updatedCart = await Cart.findOne({ guestId })
       .populate("items.product");
 
@@ -104,7 +119,7 @@ exports.removeFromCart = async (req, res) => {
     console.error("Remove Error:", err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
 
   }
@@ -121,7 +136,7 @@ exports.clearCart = async (req, res) => {
     await Cart.findOneAndDelete({ guestId });
 
     res.json({
-      message: "Cart cleared"
+      message: "Cart cleared",
     });
 
   } catch (err) {
@@ -129,7 +144,7 @@ exports.clearCart = async (req, res) => {
     console.error("ClearCart Error:", err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
 
   }
