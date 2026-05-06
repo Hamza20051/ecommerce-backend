@@ -33,20 +33,22 @@ const createOrder = async (req, res) => {
     /* =========================
        📧 SEND EMAIL AFTER ORDER
     ========================= */
-    await sendEmail(
-      shippingInfo.email,
-      paymentMethod === "COD"
-        ? "Order Confirmed - Wearity"
-        : "Order Pending Verification - Wearity",
+    try {
 
-      paymentMethod === "COD"
-        ? `Hello ${shippingInfo.name},
+      await sendEmail(
+        shippingInfo.email,
+        paymentMethod === "COD"
+          ? "Order Confirmed - Wearity"
+          : "Order Pending Verification - Wearity",
+
+        paymentMethod === "COD"
+          ? `Hello ${shippingInfo.name},
 
 Your order (${saved._id}) has been confirmed 🎉
 
 Thank you for shopping with Wearity.
 `
-        : `Hello ${shippingInfo.name},
+          : `Hello ${shippingInfo.name},
 
 Your order (${saved._id}) has been placed successfully.
 
@@ -56,7 +58,11 @@ After verification, your order will be confirmed.
 
 Thank you for shopping with Wearity.
 `
-    );
+      );
+
+    } catch (emailError) {
+      console.log("Email failed:", emailError.message);
+    }
 
     res.status(201).json(saved);
 
@@ -87,17 +93,23 @@ const updateOrderStatus = async (req, res) => {
       /* =========================
          📧 SEND CONFIRMATION EMAIL
       ========================= */
-      await sendEmail(
-        order.shippingInfo.email,
-        "Order Confirmed - Wearity",
+      try {
 
-        `Hello ${order.shippingInfo.name},
+        await sendEmail(
+          order.shippingInfo.email,
+          "Order Confirmed - Wearity",
+
+          `Hello ${order.shippingInfo.name},
 
 Your order (${order._id}) has been confirmed 🎉
 
 Thank you for shopping with Wearity.
 `
-      );
+        );
+
+      } catch (emailError) {
+        console.log("Email failed:", emailError.message);
+      }
     }
 
     const updated = await order.save();
