@@ -23,8 +23,8 @@ const createOrder = async (req, res) => {
       shippingInfo,
       totalPrice,
       paymentMethod,
-      status: "Pending",
-      isPaid: false,
+      status: paymentMethod === "COD" ? "Confirmed" : "Pending",
+      isPaid: paymentMethod === "COD" ? true : false,
     });
 
     const saved = await order.save();
