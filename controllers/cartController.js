@@ -5,7 +5,18 @@ exports.addToCart = async (req, res) => {
   try {
 
     const { guestId } = req.params;
-    const { productId, quantity } = req.body;
+
+    // ✅ SAFE REQUEST VALUES
+    const productId = req.body.productId;
+
+    const quantity = Number(req.body.quantity) || 1;
+
+    // ✅ VALIDATION
+    if (!productId) {
+      return res.status(400).json({
+        message: "Invalid product ID"
+      });
+    }
 
     console.log("BODY:", req.body);
     console.log("PRODUCT ID:", productId);
@@ -14,10 +25,12 @@ exports.addToCart = async (req, res) => {
 
     // ✅ CREATE CART IF NOT EXISTS
     if (!cart) {
+
       cart = new Cart({
         guestId,
         items: [],
       });
+
     }
 
     // ✅ SAFE CHECK
@@ -41,7 +54,7 @@ exports.addToCart = async (req, res) => {
 
     }
 
-    // ✅ SAVE
+    // ✅ SAVE CART
     await cart.save();
 
     // ✅ FAST RESPONSE
