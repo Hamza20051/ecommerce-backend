@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 const sendEmail = require('../utils/sendEmail');
-
+const Product = require('../models/Product');
 /* =========================
    CREATE ORDER
 ========================= */
@@ -29,7 +29,24 @@ const createOrder = async (req, res) => {
     });
 
     const saved = await order.save();
+    // ✅ REDUCE PRODUCT STOCK
+for (const item of products) {
 
+  const product = await Product.findById(item.product);
+
+  if (product) {
+
+    product.stock -= item.quantity;
+
+    // ✅ PREVENT NEGATIVE STOCK
+    if (product.stock <= 0) {
+      product.stock = 0;
+      product.isOutOfStock = true;
+    }
+
+    await product.save();
+  }
+}
     /* =========================
        📧 SEND EMAIL AFTER ORDER
     ========================= */
