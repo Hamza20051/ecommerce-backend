@@ -1,4 +1,5 @@
 const Cart = require("../models/Cart");
+const Product = require("../models/Product");
 
 // ADD / UPDATE CART
 exports.addToCart = async (req, res) => {
@@ -20,6 +21,15 @@ exports.addToCart = async (req, res) => {
 
     console.log("BODY:", req.body);
     console.log("PRODUCT ID:", productId);
+
+    // ✅ GET PRODUCT
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found"
+      });
+    }
 
     let cart = await Cart.findOne({ guestId });
 
@@ -43,13 +53,16 @@ exports.addToCart = async (req, res) => {
     // ✅ UPDATE QUANTITY
     if (existingItem) {
 
-      existingItem.quantity += quantity;
+      existingItem.quantity = Math.min(
+        product.stock,
+        existingItem.quantity + quantity
+      );
 
     } else {
 
       cart.items.push({
         product: productId,
-        quantity,
+        quantity: Math.min(quantity, product.stock),
       });
 
     }
