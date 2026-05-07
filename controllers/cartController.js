@@ -7,7 +7,6 @@ exports.addToCart = async (req, res) => {
 
     const { guestId } = req.params;
 
-    // ✅ SAFE REQUEST VALUES
     const productId = req.body.productId;
 
     const quantity = Number(req.body.quantity) || 1;
@@ -19,15 +18,19 @@ exports.addToCart = async (req, res) => {
       });
     }
 
-    console.log("BODY:", req.body);
-    console.log("PRODUCT ID:", productId);
-
     // ✅ GET PRODUCT
     const product = await Product.findById(productId);
 
     if (!product) {
       return res.status(404).json({
         message: "Product not found"
+      });
+    }
+
+    // ✅ OUT OF STOCK
+    if (product.stock <= 0) {
+      return res.status(400).json({
+        message: "Out of Stock"
       });
     }
 
@@ -43,26 +46,35 @@ exports.addToCart = async (req, res) => {
 
     }
 
-    // ✅ SAFE CHECK
+    // ✅ FIND EXISTING ITEM
     const existingItem = cart.items.find(
       (item) =>
         item.product &&
         item.product.toString() === productId
     );
 
-    // ✅ UPDATE QUANTITY
+    // ✅ STOCK CHECK
     if (existingItem) {
 
-      existingItem.quantity = Math.min(
-        product.stock,
-        existingItem.quantity + quantity
-      );
+      if (existingItem.quantity + quantity > product.stock) {
+        return res.status(400).json({
+          message: `Only ${product.stock} items available in stock`
+        });
+      }
+
+      existingItem.quantity += quantity;
 
     } else {
 
+      if (quantity > product.stock) {
+        return res.status(400).json({
+          message: `Only ${product.stock} items available in stock`
+        });
+      }
+
       cart.items.push({
         product: productId,
-        quantity: Math.min(quantity, product.stock),
+        quantity,
       });
 
     }
@@ -70,7 +82,6 @@ exports.addToCart = async (req, res) => {
     // ✅ SAVE CART
     await cart.save();
 
-    // ✅ FAST RESPONSE
     res.json({
       success: true,
       message: "Added to cart",
